@@ -22,8 +22,12 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         await client.connect();
+
         const bookDB = client.db("bookDB");
         const reviewsCollection = bookDB.collection("reviewsCollection");
+
+        const userDB = client.db("userDB");
+        const userCollection = userDB.collection("userCollection");
 
         // get all data 
         app.get("/books", async (req, res) => {
@@ -65,6 +69,14 @@ async function run() {
             const result = await reviewsCollection.deleteOne({ _id: new ObjectId(id) });
             res.send(result);
           });
+
+
+      // create user 
+      app.post("/user", async (req, res) => {
+        const userData = req.body;
+        const result = await userCollection.insertOne(userData);
+        res.send(result);
+    });
 
         console.log("Database is connected");
     } finally {
