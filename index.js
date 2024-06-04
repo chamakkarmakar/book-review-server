@@ -40,10 +40,10 @@ async function run() {
         app.get("/books/:id", async (req, res) => {
             const id = req.params.id;
             const bookData = await reviewsCollection.findOne({
-              _id: new ObjectId(id),
+                _id: new ObjectId(id),
             });
             res.send(bookData);
-          });
+        });
 
         // create data 
         app.post("/books", async (req, res) => {
@@ -57,26 +57,46 @@ async function run() {
             const id = req.params.id;
             const updatedData = req.body;
             const result = await reviewsCollection.updateOne(
-              { _id: new ObjectId(id) },
-              { $set: updatedData }
+                { _id: new ObjectId(id) },
+                { $set: updatedData }
             );
             res.send(result);
-          });
+        });
 
         //   delete data
-        app.delete("/books/:id",  async (req, res) => {
+        app.delete("/books/:id", async (req, res) => {
             const id = req.params.id;
             const result = await reviewsCollection.deleteOne({ _id: new ObjectId(id) });
             res.send(result);
+        });
+
+
+        // create user 
+        app.post("/user", async (req, res) => {
+            const user = req.body;
+            const isUserExist = await userCollection.findOne({ email: user?.email });
+            if (isUserExist?._id) {
+                return res.send({
+                  statu: "success",
+                  message: "Successfully Login"
+                 
+                });
+              }
+            const result = await userCollection.insertOne(user);
+            res.send(result);
+        });
+
+        app.get("/user/get/:id", async (req, res) => {
+            const id = req.params.id;
+            const result = await userCollection.findOne({ _id: new ObjectId(id) });
+            res.send(result);
           });
-
-
-      // create user 
-      app.post("/user", async (req, res) => {
-        const userData = req.body;
-        const result = await userCollection.insertOne(userData);
-        res.send(result);
-    });
+      
+          app.get("/user/:email", async (req, res) => {
+            const email = req.params.email;
+            const result = await userCollection.findOne({ email });
+            res.send(result);
+          });
 
         console.log("Database is connected");
     } finally {
