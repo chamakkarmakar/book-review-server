@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const app = express();
+const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
 const port = process.env.PORT || 5000;
@@ -18,6 +19,17 @@ const client = new MongoClient(uri, {
         deprecationErrors: true,
     }
 });
+
+function createToken(user) {
+    const token = jwt.sign(
+        {
+            email: user.email,
+        },
+        "secret",
+        { expiresIn: "7d" }
+    );
+    return token;
+}
 
 async function run() {
     try {
@@ -74,29 +86,42 @@ async function run() {
         // create user 
         app.post("/user", async (req, res) => {
             const user = req.body;
+            const token = createToken(user);
+            console.log(token);
             const isUserExist = await userCollection.findOne({ email: user?.email });
             if (isUserExist?._id) {
                 return res.send({
-                  statu: "success",
-                  message: "Successfully Login"
-                 
+                    statu: "success",
+                    message: "Successfully Login",
+                    token
                 });
-              }
-            const result = await userCollection.insertOne(user);
-            res.send(result);
+            }
+            await userCollection.insertOne(user);
+            return res.send({ token });;
         });
 
         app.get("/user/get/:id", async (req, res) => {
             const id = req.params.id;
             const result = await userCollection.findOne({ _id: new ObjectId(id) });
             res.send(result);
-          });
-      
-          app.get("/user/:email", async (req, res) => {
+        });
+
+        app.get("/user/:email", async (req, res) => {
             const email = req.params.email;
             const result = await userCollection.findOne({ email });
             res.send(result);
-          });
+        });
+
+        app.patch("/user/:email", async (req, res) => {
+            const email = req.params.email;
+            const userData = req.body;
+            const result = await userCollection.updateOne(
+                { email },
+                { $set: userData },
+                { upsert: true }
+            );
+            res.send(result);
+        });
 
         console.log("Database is connected");
     } finally {
