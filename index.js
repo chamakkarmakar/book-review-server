@@ -31,6 +31,16 @@ function createToken(user) {
     return token;
 }
 
+function verifyToken(req, res, next) {
+    const token = req.headers.authorization.split(" ")[1];
+    const verify = jwt.verify(token, "secret");
+    if (!verify?.email) {
+        return res.send("You are not authorized");
+    }
+    req.user = verify.email;
+    next();
+}
+
 async function run() {
     try {
         await client.connect();
@@ -58,14 +68,14 @@ async function run() {
         });
 
         // create data 
-        app.post("/books", async (req, res) => {
+        app.post("/books", verifyToken, async (req, res) => {
             const booksData = req.body;
             const result = await reviewsCollection.insertOne(booksData);
             res.send(result);
         });
 
         // update data 
-        app.patch("/books/:id", async (req, res) => {
+        app.patch("/books/:id", verifyToken,async (req, res) => {
             const id = req.params.id;
             const updatedData = req.body;
             const result = await reviewsCollection.updateOne(
@@ -76,7 +86,7 @@ async function run() {
         });
 
         //   delete data
-        app.delete("/books/:id", async (req, res) => {
+        app.delete("/books/:id", verifyToken,async (req, res) => {
             const id = req.params.id;
             const result = await reviewsCollection.deleteOne({ _id: new ObjectId(id) });
             res.send(result);
