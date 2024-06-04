@@ -32,6 +32,15 @@ async function run() {
             res.send(result);
         });
 
+        // get single data
+        app.get("/books/:id", async (req, res) => {
+            const id = req.params.id;
+            const bookData = await reviewsCollection.findOne({
+              _id: new ObjectId(id),
+            });
+            res.send(bookData);
+          });
+
         // create data 
         app.post("/books", async (req, res) => {
             const booksData = req.body;
@@ -60,7 +69,7 @@ async function run() {
         console.log("Database is connected");
     } finally {
 
-        await client.close();
+        // await client.close();
     }
 }
 run().catch(console.dir);
