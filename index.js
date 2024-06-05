@@ -43,7 +43,7 @@ function verifyToken(req, res, next) {
 
 async function run() {
     try {
-        await client.connect();
+        // await client.connect();
 
         const bookDB = client.db("bookDB");
         const reviewsCollection = bookDB.collection("reviewsCollection");
