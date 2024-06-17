@@ -25,7 +25,7 @@ function createToken(user) {
         {
             email: user.email,
         },
-        "secret",
+        process.env.ACCESS_TOKEN_SECRET,
         { expiresIn: "7d" }
     );
     return token;
@@ -33,7 +33,7 @@ function createToken(user) {
 
 function verifyToken(req, res, next) {
     const token = req.headers.authorization.split(" ")[1];
-    const verify = jwt.verify(token, "secret");
+    const verify = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
     if (!verify?.email) {
         return res.send("You are not authorized");
     }
@@ -110,6 +110,11 @@ async function run() {
             return res.send({ token });;
         });
 
+        app.get("/user", async (req, res) => {
+            const usersData = userCollection.find();
+            const result = await usersData.toArray();
+            res.send(result);
+        });
         app.get("/user/get/:id", async (req, res) => {
             const id = req.params.id;
             const result = await userCollection.findOne({ _id: new ObjectId(id) });
